@@ -234,18 +234,7 @@ class PoseSolver(BaseSolver):
             if self.output_dir and dist_utils.is_main_process():
                 with (self.output_dir / "log.txt").open("a") as f:
                     f.write(json.dumps(log_stats) + "\n")
-
-                # for evaluation logs
-                if coco_evaluator is not None:
-                    (self.output_dir / 'eval').mkdir(exist_ok=True)
-                    if "keypoints" in coco_evaluator.coco_eval:
-                        filenames = ['latest.pth']
-                        if epoch % 50 == 0:
-                            filenames.append(f'{epoch:03}.pth')
-                        for name in filenames:
-                            torch.save(coco_evaluator.coco_eval["keypoints"].eval,
-                                    self.output_dir / "eval" / name)
-
+                      
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
         print('Training time {}'.format(total_time_str))

@@ -14,6 +14,8 @@ from torch.optim.lr_scheduler import LRScheduler
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 
+from ..misc.dist_utils import is_main_process
+
 __all__ = ['BaseConfig', ]
 
 
@@ -278,7 +280,7 @@ class BaseConfig(object):
 
     @property
     def writer(self) -> SummaryWriter:
-        if self._writer is None:
+        if self._writer is None and is_main_process():
             if self.summary_dir:
                 self._writer = SummaryWriter(self.summary_dir)
             elif self.output_dir:
