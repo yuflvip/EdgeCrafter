@@ -1,0 +1,9 @@
+__include__: [
+  '../dataset/coco.yml',
+  '../ecdet/ecdet_hgnetv2_b6.yml',
+  'ecseg_hgnetv2.yml',
+]
+
+output_dir: outputs/ecseg_hgnetv2_b6
+
+eval_spatial_size: [640, 640]

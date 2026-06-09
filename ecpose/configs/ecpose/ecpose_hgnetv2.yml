@@ -1,0 +1,65 @@
+task: pose
+
+model: ECPose
+criterion: DETRPoseCriterion
+postprocessor: DETRPosePostProcessor
+
+use_focal_loss: True
+eval_spatial_size: [640, 640] # h w
+checkpoint_freq: 4    # save freq
+grad_accum_steps: 1
+
+ECPose:
+  backbone: HGNetV2
+  encoder: HybridEncoder
+  decoder: DETRTransformer
+
+
+HybridEncoder:
+  in_channels: [256, 256, 256]
+  feat_strides: [8, 16, 32]
+
+  # intra
+  hidden_dim: 256
+  use_encoder_idx: [2]
+  num_encoder_layers: 1
+  nhead: 8
+  dim_feedforward: 1024
+  dropout: 0.
+
+  # cross
+  expansion: 1.0
+  depth_mult: 1
+  act: silu
+
+  # New
+  csp_type: csp2
+  fuse_op: sum
+
+
+DETRTransformer:
+  hidden_dim: 256
+  dropout: 0.0
+  nhead: 8
+  num_queries: 60
+  dim_feedforward: 1024
+  num_decoder_layers: 6
+  normalize_before: False
+  return_intermediate_dec: True
+  activation: 'relu'
+  num_feature_levels: 3
+  dec_n_points: 4
+  learnable_tgt_init: True
+  two_stage_type: 'standard'
+  num_body_points: 17
+  aux_loss: True
+  dec_pred_class_embed_share: False
+  dec_pred_pose_embed_share: False
+  two_stage_class_embed_share: False
+  two_stage_bbox_embed_share: False
+  cls_no_bias: False
+
+
+HGNetV2:
+  name: B2
+  hidden_dim: 256

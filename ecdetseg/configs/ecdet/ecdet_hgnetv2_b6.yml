@@ -1,0 +1,66 @@
+__include__: [
+  '../dataset/coco.yml',
+  'ecdet_hgnetv2.yml',
+]
+
+output_dir: outputs/ecdet_hgnetv2_b6
+
+
+HGNetV2:
+  name: B6
+  hidden_dim: 384
+
+
+HybridEncoder:
+  in_channels: [384, 384, 384]
+  depth_mult: 1
+  expansion: 0.75
+  hidden_dim: 384
+  dim_feedforward: 1024
+
+ECTransformer:
+  feat_channels: [384, 384, 384]
+  hidden_dim: 384
+  dim_feedforward: 2048
+  num_layers: 4
+  eval_idx: -1
+
+
+optimizer:
+  type: AdamW
+  params: 
+    -
+      # except norm/bn/bias in backbone
+      params: '^(?=.*.backbone)(?!.*(?:norm|bn|bias)).*$'  
+      lr: 0.000005
+    -
+      # including all norm/bn/bias in backbone
+      params: '^(?=.*.backbone)(?=.*(?:norm|bn|bias)).*$'    
+      lr: 0.000005
+      weight_decay: 0.
+    - 
+      # including all norm/bn/bias except for the backbone
+      params: '^(?!.*\.backbone)(?=.*(?:norm|bn|bias)).*$'
+      weight_decay: 0.
+
+  lr: 0.0005
+  betas: [0.9, 0.999]
+  weight_decay: 0.000125
+
+epochs: 50
+warmup_iter: 2000
+lr_gamma: 0.5
+
+eval_spatial_size: [640, 640] # h w
+
+
+train_dataloader:
+  dataset: 
+    transforms:
+      mosaic_epoch: 24
+      mosaic_prob: 1
+      stop_epoch: 48
+
+  collate_fn:
+    mixup_prob: 1
+    mixup_epoch: 24

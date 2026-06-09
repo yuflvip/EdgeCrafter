@@ -13,4 +13,5 @@ from .detrpose_postprocesses import DETRPosePostProcessor
 from .detrpose_transformer import DETRTransformer
 from .ecpose import ECPose
 from .ecvit import ViTAdapter
+from .hgnetv2 import HGNetV2
 from .hybrid_encoder import HybridEncoder
