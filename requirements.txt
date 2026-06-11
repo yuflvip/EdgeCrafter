@@ -1,14 +1,14 @@
 torch >= 2.6.0
-ml_dtypes==0.2.0
-numpy==2.0.1
+ml_dtypes
+numpy
 torchvision
 pycocotools
 PyYAML
 tensorboard
-scipy==1.16.0
+scipy
 calflops
 transformers
 tabulate
-onnx==1.19.0
+onnx
 onnxruntime
 opencv-python

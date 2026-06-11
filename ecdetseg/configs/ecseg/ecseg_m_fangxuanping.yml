@@ -1,0 +1,31 @@
+__include__: [
+  '../ecdet/ecdet_m.yml',
+  'ecseg.yml',
+  '../dataset/fangxuanping.yml',
+]
+
+output_dir: outputs/ecseg_m_fangxuanping
+
+ViTAdapter:
+  name: ecseg_vittplus
+  weights_path: ecvits/ecseg_vittplus.pth
+
+use_amp: true
+
+eval_spatial_size: [512, 512] # h w
+
+epochs: 62
+warmup_iter: 2000
+lr_gamma: 0.5
+
+train_dataloader:
+  total_batch_size: 2      # 全局 Batch Size（需根据显存容量调整）
+  dataset:
+    transforms:
+      mosaic_epoch: 30        # Mosaic 增强截止轮次
+      mosaic_prob: 0.75       # Mosaic 增强触发概率
+      stop_epoch: 60          # 增强停止轮次
+
+  collate_fn:
+    mixup_prob: 0.75          # MixUp 增强概率
+    mixup_epoch: 30           # MixUp 增强截止轮次
