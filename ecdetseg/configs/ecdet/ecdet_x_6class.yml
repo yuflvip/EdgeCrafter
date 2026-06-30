@@ -1,0 +1,77 @@
+__include__: [
+  '../ecdet/ecdet_x.yml',
+  'ecdet.yml',
+  '../dataset/detect_6class.yml',
+]
+
+output_dir: outputs/ecdet_x_detect_6class
+
+
+ViTAdapter:
+  name: ecdet_vitsplus
+  embed_dim: 384
+  num_heads: 6
+  proj_dim: 256
+  interaction_indexes: [10, 11]
+  ffn_ratio: 6  
+  weights_path: ecvits/ecdet_vitsplus.pth
+
+HybridEncoder:
+  in_channels: [256, 256, 256]
+  hidden_dim: 256
+  depth_mult: 1
+  expansion: 1.5
+  dim_feedforward: 2048
+
+ECTransformer:
+  feat_channels: [256, 256, 256]
+  hidden_dim: 256
+  num_layers: 4
+  eval_idx: -1
+  dim_feedforward: 2048
+
+
+optimizer:
+  type: AdamW
+  params: 
+    -
+      # except norm/bn/bias in backbone
+      params: '^(?=.*.backbone)(?!.*(?:norm|bn|bias)).*$'  
+      lr: 0.0000025
+    -
+      # including all norm/bn/bias in backbone
+      params: '^(?=.*.backbone)(?=.*(?:norm|bn|bias)).*$'    
+      lr: 0.0000025
+      weight_decay: 0.
+    - 
+      # including all norm/bn/bias except for the backbone
+      params: '^(?!.*\.backbone)(?=.*(?:norm|bn|bias)).*$'
+      weight_decay: 0.
+
+  lr: 0.0005
+  betas: [0.9, 0.999]
+  weight_decay: 0.000125
+
+epochs: 150
+warmup_iter: 2000
+lr_gamma: 0.5
+
+
+eval_spatial_size: [640, 640] # h w
+
+
+train_dataloader:
+  total_batch_size: 84      # 全局 Batch Size（需根据显存容量调整）
+  dataset: 
+    transforms:
+      mosaic_epoch: 36
+      mosaic_prob: 0.75
+      stop_epoch: 72
+
+  collate_fn:
+    mixup_prob: 0.75
+    mixup_epoch: 36
+val_dataloader:
+    total_batch_size: 84
+
+

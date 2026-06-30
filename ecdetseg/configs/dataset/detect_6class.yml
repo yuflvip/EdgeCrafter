@@ -1,0 +1,57 @@
+task: detection
+
+evaluator:
+  type: CocoEvaluator
+  iou_types: ['bbox', ]
+  verbose: True
+
+num_classes: 6 # 6class
+remap_mscoco_category: False
+
+model: ECDet
+criterion: ECCriterion
+postprocessor: PostProcessor
+
+ECCriterion:
+  weight_dict: {loss_mal: 1, loss_bbox: 5, loss_giou: 2, loss_fgl: 0.15, loss_ddf: 1.5}
+  losses: ['mal', 'boxes', 'local']
+  gamma: 1.5
+  alpha: 0.75
+  reg_max: 32
+
+  matcher:
+    type: HungarianMatcher
+    weight_dict: {cost_class: 2, cost_bbox: 5, cost_giou: 2}
+    alpha: 0.25
+    gamma: 2.0
+
+train_dataloader:
+  type: DataLoader
+  dataset:
+    type: CocoDetection
+    img_folder: /mnt/yolo_tool/yufl/EdgeCrafter/broken_datasets/detect_6class/coco_format/train/
+    ann_file: /mnt/yolo_tool/yufl/EdgeCrafter/broken_datasets/detect_6class/coco_format/train.json
+    return_masks: False
+    transforms:
+      type: Compose
+  shuffle: True
+  num_workers: 24
+  drop_last: True
+  collate_fn:
+    type: BatchImageCollateFunction
+
+
+val_dataloader:
+  type: DataLoader
+  dataset:
+    type: CocoDetection
+    img_folder: /mnt/yolo_tool/yufl/EdgeCrafter/broken_datasets/detect_6class/coco_format/val/
+    ann_file: /mnt/yolo_tool/yufl/EdgeCrafter/broken_datasets/detect_6class/coco_format/val.json
+    return_masks: False
+    transforms:
+      type: Compose
+  shuffle: False
+  num_workers: 24
+  drop_last: False
+  collate_fn:
+    type: BatchImageCollateFunction
