@@ -1,0 +1,77 @@
+__include__: [
+  '../ecdet/ecdet_x.yml',
+  'ecdet.yml',
+  '../dataset/detect_yanhuo.yml',
+]
+
+output_dir: outputs/ecdet_x_detect_yanhuo
+
+
+ViTAdapter:
+  name: ecdet_vitsplus
+  embed_dim: 384
+  num_heads: 6
+  proj_dim: 256
+  interaction_indexes: [10, 11]
+  ffn_ratio: 6  
+  weights_path: ecvits/ecdet_vitsplus.pth
+
+HybridEncoder:
+  in_channels: [256, 256, 256]
+  hidden_dim: 256
+  depth_mult: 1
+  expansion: 1.5
+  dim_feedforward: 2048
+
+ECTransformer:
+  feat_channels: [256, 256, 256]
+  hidden_dim: 256
+  num_layers: 4
+  eval_idx: -1
+  dim_feedforward: 2048
+
+
+optimizer:
+  type: AdamW
+  params: 
+    -
+      # except norm/bn/bias in backbone
+      params: '^(?=.*.backbone)(?!.*(?:norm|bn|bias)).*$'  
+      lr: 0.0000025
+    -
+      # including all norm/bn/bias in backbone
+      params: '^(?=.*.backbone)(?=.*(?:norm|bn|bias)).*$'    
+      lr: 0.0000025
+      weight_decay: 0.
+    - 
+      # including all norm/bn/bias except for the backbone
+      params: '^(?!.*\.backbone)(?=.*(?:norm|bn|bias)).*$'
+      weight_decay: 0.
+
+  lr: 0.0005
+  betas: [0.9, 0.999]
+  weight_decay: 0.000125
+
+epochs: 260                  # 总训练轮数。COCO 6x 策略（1x = 12 轮）外加 2 轮关闭增强的微调
+warmup_iter: 2000            # 学习率预热步数 
+lr_gamma: 0.5                # 学习率衰减率
+
+
+eval_spatial_size: [640, 640] # h w
+
+
+train_dataloader:
+  total_batch_size: 128      # 全局 Batch Size（需根据显存容量调整）
+  dataset: 
+    transforms:
+      mosaic_epoch: 129      # Mosaic 增强截止轮次。通常建议设为 stop_epoch 的一半。
+      mosaic_prob: 0.75      # Mosaic 增强触发概率
+      stop_epoch: 258        # 增强停止轮次（最后 2 轮通常关闭数据增强以利于收敛）epochs - stop_epoch如果不是0-5,代码会强制改成epochs - 2
+
+  collate_fn:
+    mixup_prob: 0.75         # MixUp 增强概率
+    mixup_epoch: 65          # MixUp 增强截止轮次
+val_dataloader:
+    total_batch_size: 128
+
+
